@@ -34,7 +34,7 @@
             实现MemoryManager
         SizeFit<Compare::BestFit> 最佳匹配
             实现MemoryManager
-        SizeFit<Compare::BestFit> 最差匹配
+        SizeFit<Compare::WorstFit> 最差匹配
             实现MemoryManager
         MemBlock 内存块
         Sequence 序列产生
