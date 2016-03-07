@@ -21,7 +21,7 @@
 
 实验结论
     在无碎片整理的情况下
-        优先分配遇到内存不足的情况多，产生碎片多。
+        最先分配遇到内存不足的情况多，产生碎片多。
         表现最好是最佳分配，其次是最差分配。
     在有碎片整理的情况下
         表现差不多
@@ -30,7 +30,7 @@
     类
         MemoryManager 内存管理器
             抽象类，声明alloc,free等虚函数
-        FirstFit 优先分配
+        FirstFit 最先分配
             实现MemoryManager
         SizeFit<Compare::BestFit> 最佳分配
             实现MemoryManager
