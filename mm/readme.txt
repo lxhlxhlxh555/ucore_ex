@@ -17,7 +17,7 @@
         mem size 内存大小
         block range 申请内存块大小范围
         count 遇到内存不足的次数
-        fragCount 遇到内存不足时碎片的个数
+        fragCount 遇到内存不足时碎片的个数总和
 
 实验结论
     在无碎片整理的情况下
