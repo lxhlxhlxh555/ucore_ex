@@ -58,6 +58,10 @@ int main(int argc, char** argv) {
             ,pte_index , pte_valid, pte_content);
 
         // data
+        if (pte_content == 0x7f) {
+            printf("Fault (page table entry pfn 0x7f)\n");
+            continue;
+        }
         if (pte_valid) { // on memory
             data = mem[PPN2PA(pte_index)+OFF(vaddr)];
             printf("On Memory, Value: 0x%x\n",data);
