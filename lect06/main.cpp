@@ -1,97 +1,67 @@
 #include <iostream>
-#include <vector>
-#include "MemBlock.h"
-#include "FirstFit.h"
-#include "SizeFit.h"
+#define MEM_SIZE 32*1024
 
 using namespace std;
+unsigned char mem[MEM_SIZE];
 
-// 测试目标
-// 在有足够内存的情况下,观察三种分配策略的碎片数
+void printPage(unsigned int pageHead) {
+    for (int i = 0; i < 32; ++i)
+    {
+        printf("%02x ", mem[pageHead+i]);
+    }
+    printf("\n");
+}
+int main(int argc, char** argv)
+{
+    // init Memory
+    FILE *fin = fopen("mem.txt","r");
+    for (int i = 0; i < MEM_SIZE; ++i)
+    {
+        unsigned int ch;
+        fscanf(fin,"%x",&ch);
+        mem[i] = (unsigned char)ch;
+    }
+    fclose(fin);
 
-class Sequence {
-public:
-    Sequence(unsigned int size) {
-        this->size = size;
+    unsigned int ptdr = 0x220;
+    unsigned int vaddr;
+    unsigned int pde_index,pte_index,offset;
+    unsigned int pde_valid,pte_valid;
+    unsigned int pde_addr,pte_addr,paddr;
+    unsigned int pde,pte;
+    unsigned char data;
+
+    printf("input address:");
+    scanf("%x",&vaddr);
+
+    printf("Virtual Address 0x%04x\n", vaddr);
+
+    pde_index = (vaddr & (0x1f << 10)) >> 10;
+    pte_index = (vaddr & (0x1f << 5)) >> 5;
+    offset = (vaddr & 0x1f);
+
+    pde = mem[ptdr+pde_index];
+    pde_valid = (pde&0x80) >> 7;
+    pde_addr = (pde&0x7f);
+    printf("  pde index:0x%02x ",pde_index);
+    printf("pde contents:(valid %d, pfn 0x%02x)\n",pde_valid,pde_addr);
+    if (!pde_valid) {
+        printf("    Fault (page directory entry not valid)\n");
+        return -1;
     }
 
-    unsigned int getNum(unsigned int min, unsigned int max) {
-        if (max < min) return 0;
-        unsigned int range = max - min;
-        if (size < max) return 0;
-        unsigned int ret = (unsigned int) (random() % range + min);
-        size -= ret;
-        return ret;
+    pte = mem[pde_addr*32+pte_index];
+    pte_valid = (pte&0x80) >> 7;
+    pte_addr = (pte&0x7f);
+    printf("    pte index:0x%02x ",pte_index);
+    printf("pte contents:(valid %d, pfn 0x%02x)\n",pte_valid,pte_addr);
+    if (!pte_valid) {
+        printf("      Fault (page table entry not valid)\n");
+        return -1;
     }
 
-    void inc(unsigned int num) {
-        size += num;
-    }
-
-private:
-    unsigned int size;
-};
-
-int main(int argc, char **argv) {
-
-//    if (argc < 4) {
-//        cout << "please input parameters" << endl;
-//        cout << "./mm loopSize memSize min max" << endl;
-//        return -1;
-//    }
-//    int loopSize = atoi(argv[1]);
-//    int memSize = atoi(argv[2]);
-//    int min = atoi(argv[3]);
-//    int max = atoi(argv[4]);
-
-    int loopSize = 200;
-    int memSize = 1000;
-    int min = 10;
-    int max = 100;
-
-    FirstFit first("first", memSize);
-    SizeFit<Compare::BestFit> best("best", memSize);
-    SizeFit<Compare::WorstFit> worst("worst", memSize);
-
-    vector<MemoryManager *> mms;
-    mms.push_back(&first);
-    mms.push_back(&best);
-    mms.push_back(&worst);
-
-    srandom(time(0));
-    cout << "mem size: " << memSize << endl;
-    cout << "block range:[" << min << "," << max << "]" << endl;
-    for (auto &mm : mms) {
-        int defragCount = 0;
-        int fragCount = 0;
-        Sequence sequence(memSize);
-
-        for (int i = 0; i < 10; ++i) {
-            unsigned int num = sequence.getNum(30, 50);
-            mm->myAlloc(num);
-        }
-
-        for (int i = 0; i < loopSize; ++i) {
-            unsigned int num = sequence.getNum(min, max);
-            char *ptr = mm->myAlloc(num);
-            if (ptr == nullptr) {
-                fragCount += mm->getFreeBlockSize();
-                defragCount++;
-                int temp = mm->randomErase();
-                sequence.inc(temp);
-
-//                mm->defrag(); // 碎片整理
-            }
-            if (random() % 2 == 0) {
-                int temp = mm->randomErase();
-                sequence.inc(temp);
-            }
-        }
-
-        cout << mm->getName() << ":"
-             << "fragCount:" << fragCount
-             << ", count:" << defragCount << endl;
-    }
-
+    paddr = pte_addr*32+offset;
+    data = mem[paddr];
+    printf("      Translates to Physical Address 0x%04x --> Value: 0x%02x\n",paddr,data);
     return 0;
 }
