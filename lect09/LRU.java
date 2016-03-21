@@ -9,13 +9,10 @@ public class LRU {
         int accesses[] = new int[]{1, 2, 3, 4};
 
         for (int access : accesses) {
-            boolean exist = false;
             if (pages.contains(access)) {
                 pages.remove(access);
                 pages.add(access);
-                exist = true;
-            }
-            if (!exist) {
+            } else {
                 if (pages.size() == size) {
                     pages.remove(0);
                 }
