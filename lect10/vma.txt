@@ -1,0 +1,51 @@
+页置换管理接口
+     struct swap_manager
+     {
+          const char *name;
+          int (*init)            (void);
+          int (*init_mm)         (struct mm_struct *mm);
+          int (*tick_event)      (struct mm_struct *mm);
+          int (*map_swappable)   (struct mm_struct *mm, uintptr_t addr
+                              , struct Page *page, int swap_in);
+          int (*set_unswappable) (struct mm_struct *mm, uintptr_t addr);
+          int (*swap_out_victim) (struct mm_struct *mm, struct Page **ptr_page, int in_tick);
+          int (*check_swap)(void);     
+     };
+     主要通过修改以下函数，从而实现不同策略的页替换。
+          init 初始化
+          swap_out_victim 挑选出要换出的页
+     根据需要用一些辅助函数加以辅助。
+          tick_event 时钟事件
+          map_swappable 完成替换后，建立页的基本信息
+          set_unswappable 根据算法，在需要的地方页可被替换的标记。
+
+页替换过程
+     指令触发缺页异常，如果该页是有效且不在内存中，则产生页替换。
+     ucore页替换过程大体如下：
+     在异常处理do_pgfault中
+          swap_in 将硬盘中的页面放入内存
+               alloc_page 尝试申请内存，如果内存不够，则swap_out换出页面。
+                    swap_out调用swap_out_victim，挑选出合适的页面，然后换出
+                         swap_out_victim (*)不同替换算法实现不同
+          swap_map_swappable 建立算法策略的基本属性，如页访问属性、关系
+
+硬件支持
+     TLB记录页面是否被访问过的信息。该信息需要能读取和修改，否则clock算法中的访问位无法维护。
+     （不知道x86CPU是否支持，这里假定支持，否则clock算法无法实现）
+
+clock页替换设计
+     由以上对ucore页替换管理、页替换过程、CPU的硬件支持的基本了解，我们设计clock页替换算法在ucore上的实现。
+     init
+          建立循环链表，链表每项有clock算法所需的访问位
+     swap_out_victim
+          读取TLB，将访问位更新，即被访问过的页的访问位++，清零TLB上的该标记。
+          时钟算法TODO，找到合适的页
+          返回页
+     map_swappable
+          将新的页加入链表，访问位0++
+     tick_event 用不着
+     set_unswappable 用不着
+
+
+
+
