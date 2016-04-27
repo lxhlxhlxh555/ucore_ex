@@ -32,7 +32,7 @@ public:
 		: id(id), wait_time(wait_time), read_time(read_time) {
 		}
 	void action() { // 读者行为
-		unique_lock<mutex> lk(m);
+		unique_lock<mutex> lk(m); // monitors begin
 		printf("%d\t%d\t%.2lf\twait\n",id, seat, getTime());
 
 		// 等待事件：座位数有一个或以上
@@ -53,7 +53,7 @@ public:
 		seat++;
 		printf("%d\t%d\t%.2lf\tleave\tread_time: %d\n",id,seat,getTime(), read_time);
 
-		lk.unlock();
+		lk.unlock(); // monitors end
 		cv.notify_one();
 	}
 };
