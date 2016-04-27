@@ -27,8 +27,8 @@
 	int seat_size = 5; // 总座位数
 	int read_max_time = 200; // 最大读书时间
 	int wait_max_time = 100; // 最大等座位时间
-	auto reader_gen_time = chrono::milliseconds(20); // 读者生成速度
-
+	int reader_gen_time = 20; // 读者生成速度
+	
 代码用c++11的线程支持库(Thread support library)实现，不依赖Linux/Unix，可跨Linux/Unix、Windows、OS X运行。
 
 ### 3. 实验结果及分析

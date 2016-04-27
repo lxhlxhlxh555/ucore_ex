@@ -12,7 +12,7 @@ int reader_num = 10; // 产生读者的总数
 int seat_size = 5; // 总座位数
 int read_max_time = 200; // 最大读书时间
 int wait_max_time = 100; // 最大等座位时间
-auto reader_gen_time = chrono::milliseconds(20); // 读者生成速度
+int reader_gen_time = 20; // 读者生成速度
 
 // 全局变量
 mutex m;
@@ -68,7 +68,7 @@ void reader_generator(int size) {
         int wait_time = random()%wait_max_time;
         thread* th = new thread(&Reader::action,Reader(i,wait_time,read_time));
         ths.push_back(th);
-        this_thread::sleep_for(reader_gen_time);
+        this_thread::sleep_for(chrono::milliseconds(reader_gen_time));
     }
     for (int i = 0; i < size; ++i)
     {
@@ -84,7 +84,7 @@ int main(int argc, char** argv)
         seat_size = atoi(argv[2]);
         read_max_time = atoi(argv[3]);
         wait_max_time = atoi(argv[4]);
-        reader_gen_time = chrono::milliseconds(atoi(argv[5]));
+        reader_gen_time = atoi(argv[5]);
     }
 
     start = chrono::system_clock::now();
